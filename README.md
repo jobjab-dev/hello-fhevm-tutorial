@@ -101,7 +101,9 @@ Live examples on Sepolia testnet:
 ✅ **Complete**: 3 examples + deployment + frontend  
 ✅ **Effective**: Learn in 30 minutes, deploy in 5 minutes  
 
-**[🎮 Try the Interactive Tutorial Now!](https://private-vote-fhevm-app.vercel.app/)**
+**Tutorial Repository**: [hello-fhevm-tutorial](https://github.com/jobjab-dev/hello-fhevm-tutorial)  
+**Production dApp Demo**: [Private Vote FHEVM](https://private-vote-fhevm-app.vercel.app/)  
+**Production Repository**: [Private-Vote-FHEVM](https://github.com/jobjab-dev/Private-Vote-FHEVM)
 
 ---
 
