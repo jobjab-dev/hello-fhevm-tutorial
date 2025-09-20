@@ -725,7 +725,7 @@ export default function App() {
       </main>
 
       <footer className="footer">
-        <p>Built for <strong>Zama Bounty Program Season 10</strong></p>
+        <p>Built for <strong>Zama Community</strong></p>
         <p>Interactive FHEVM Learning Experience</p>
       </footer>
     </div>
