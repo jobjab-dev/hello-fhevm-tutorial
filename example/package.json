@@ -1,0 +1,24 @@
+{
+  "name": "hello-fhevm-example",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "build": "hardhat compile",
+    "deploy:add": "hardhat run scripts/deploy-fheadd.js --network sepolia",
+    "deploy:counter": "hardhat run scripts/deploy-counter.js --network sepolia", 
+    "deploy:voting": "hardhat run scripts/deploy-voting.js --network sepolia",
+    "clean": "hardhat clean"
+  },
+  "dependencies": {
+    "@fhevm/solidity": "^0.8.0",
+    "@zama-fhe/oracle-solidity": "^0.1.0",
+    "dotenv": "^16.4.5",
+    "ethers": "^6.13.2"
+  },
+  "devDependencies": {
+    "@fhevm/hardhat-plugin": "^0.1.0",
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.10"
+  }
+}
+

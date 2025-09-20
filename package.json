@@ -1,0 +1,13 @@
+{
+  "name": "hello-fhevm-tutorial",
+  "version": "1.0.0",
+  "description": "Interactive FHEVM tutorial with 3 examples and gamified learning",
+  "private": true,
+  "scripts": {
+    "dev": "cd frontend && npm install && npm run dev",
+    "clean": "cd example && npm run clean"
+  },
+  "keywords": ["fhevm", "zama", "tutorial", "interactive", "fhe", "encryption", "bounty"],
+  "author": "Zama Bounty Program Season 10",
+  "license": "MIT"
+}
