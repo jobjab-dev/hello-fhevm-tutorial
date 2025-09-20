@@ -4,6 +4,8 @@
 
 Learn FHEVM through **interactive lessons, quizzes, and demos**. No wallet required to start!
 
+**[🎮 Try Live Demo](https://hello-fhevm-tutorial.vercel.app/)**
+
 ## 🎯 Learn 3 Core FHE Concepts
 
 1. **🔢 FHE Addition** - Basic encrypted arithmetic
@@ -101,7 +103,6 @@ Live examples on Sepolia testnet:
 ✅ **Complete**: 3 examples + deployment + frontend  
 ✅ **Effective**: Learn in 30 minutes, deploy in 5 minutes  
 
-**Tutorial Repository**: [hello-fhevm-tutorial](https://github.com/jobjab-dev/hello-fhevm-tutorial)  
 **Production dApp Demo**: [Private Vote FHEVM](https://private-vote-fhevm-app.vercel.app/)  
 **Production Repository**: [Private-Vote-FHEVM](https://github.com/jobjab-dev/Private-Vote-FHEVM)
 
