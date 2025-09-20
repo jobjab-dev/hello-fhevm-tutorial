@@ -136,14 +136,14 @@ export default function App() {
           type: "code-explanation", 
           title: "The FHE.add() Function",
           content: "Here's how we add two encrypted numbers:",
-          code: `function setA(externalEuint8 inputA, bytes calldata inputProof) external {
-    _a = FHE.fromExternal(inputA, inputProof);  // Import encrypted value
-    FHE.allowThis(_a);                         // Grant contract permission
+          code: `<span class="keyword">function</span> <span class="function">setA</span>(<span class="keyword">externalEuint8</span> inputA, <span class="keyword">bytes calldata</span> inputProof) <span class="keyword">external</span> {
+    _a = FHE.<span class="function">fromExternal</span>(inputA, inputProof);  <span class="comment">// Import encrypted value</span>
+    FHE.<span class="function">allowThis</span>(_a);  <span class="comment">// Grant contract permission</span>
 }
 
-function computeSum() external {
-    _result = FHE.add(_a, _b);  // Magic happens here!
-    FHE.allowThis(_result);     // Allow contract to use result
+<span class="keyword">function</span> <span class="function">computeSum</span>() <span class="keyword">external</span> {
+    _result = FHE.<span class="function">add</span>(_a, _b);  <span class="comment">// Magic happens here!</span>
+    FHE.<span class="function">allowThis</span>(_result);     <span class="comment">// Allow contract to use result</span>
 }`,
           question: "What does FHE.add() do?",
           options: [
@@ -181,7 +181,7 @@ function computeSum() external {
           ]
         }
       ],
-      contractAddress: "0x477693d4D3d0B9F33Aba1733C08185eeC98adf45"
+      contractAddress: "0x6170A47265D93B816b63381585243dDD02D11D6c"
     },
     {
       title: "FHE Counter",
@@ -204,17 +204,27 @@ function computeSum() external {
           type: "code-explanation",
           title: "Encrypted Counter vs Regular Counter",
           content: "Compare these two approaches:",
-          code: `// Regular Counter (everyone can see the value)
-uint32 private _count;
-function increment() external {
-    _count += 1;  // Value visible on blockchain
+          code: `<span class="comment">// Regular Counter (everyone can see the value)</span>
+<span class="keyword">uint32</span> <span class="keyword">private</span> _count;
+<span class="keyword">function</span> <span class="function">increment</span>() <span class="keyword">external</span> {
+    _count += 1;  <span class="comment">// Value visible on blockchain</span>
 }
 
-// FHE Counter (value stays secret)
-euint32 private _count;  
-function increment(externalEuint32 inputValue, bytes calldata inputProof) external {
-    euint32 encryptedValue = FHE.fromExternal(inputValue, inputProof);
-    _count = FHE.add(_count, encryptedValue);  // Encrypted math!
+<span class="comment">// FHE Counter (value stays secret)</span>
+<span class="keyword">euint32</span> <span class="keyword">private</span> _count;  
+<span class="keyword">function</span> <span class="function">increment</span>(
+    <span class="keyword">externalEuint32</span> inputValue, 
+    <span class="keyword">bytes calldata</span> inputProof
+) <span class="keyword">external</span> {
+    <span class="comment">// Import encrypted value with proof</span>
+    <span class="keyword">euint32</span> encValue = FHE.<span class="function">fromExternal</span>(
+        inputValue, 
+        inputProof
+    );
+    <span class="comment">// Homomorphic addition - no decryption!</span>
+    _count = FHE.<span class="function">add</span>(_count, encValue);
+    <span class="comment">// Grant contract permission</span>
+    FHE.<span class="function">allowThis</span>(_count);
 }`,
           question: "What's the key difference?",
           options: [
@@ -241,7 +251,7 @@ function increment(externalEuint32 inputValue, bytes calldata inputProof) extern
           content: "Great! You've learned how encrypted state management works with FHE. The counter value stays private on the blockchain."
         }
       ],
-      contractAddress: "0x64F21cfF69922335A5108fFB67b2B2A4185D3064"
+      contractAddress: "0xD568dBb5eDe5a835F7621CFADF3a1d1993b3311e"
     },
     {
       title: "Private Voting",
@@ -264,15 +274,15 @@ function increment(externalEuint32 inputValue, bytes calldata inputProof) extern
           type: "code-explanation",
           title: "Encrypted Conditional Logic", 
           content: "Here's how we count votes without seeing individual choices:",
-          code: `function vote(externalEuint32 encryptedChoice, bytes calldata inputProof) external {
-    euint32 choice = FHE.fromExternal(encryptedChoice, inputProof);
+          code: `<span class="keyword">function</span> <span class="function">vote</span>(<span class="keyword">externalEuint32</span> encryptedChoice, <span class="keyword">bytes calldata</span> inputProof) <span class="keyword">external</span> {
+    <span class="keyword">euint32</span> choice = FHE.<span class="function">fromExternal</span>(encryptedChoice, inputProof);
     
-    // Check if vote is "Yes" (0) or "No" (1) - without decrypting!
-    ebool isYes = FHE.eq(choice, FHE.asEuint32(0));
+    <span class="comment">// Check if vote is "Yes" (0) or "No" (1) - without decrypting!</span>
+    <span class="keyword">ebool</span> isYes = FHE.<span class="function">eq</span>(choice, FHE.<span class="function">asEuint32</span>(0));
     
-    // Add 1 to correct tally - conditionally
-    euint64 incYes = FHE.select(isYes, one, zero);
-    tallies[0] = FHE.add(tallies[0], incYes);
+    <span class="comment">// Add 1 to correct tally - conditionally</span>
+    <span class="keyword">euint64</span> incYes = FHE.<span class="function">select</span>(isYes, one, zero);
+    tallies[0] = FHE.<span class="function">add</span>(tallies[0], incYes);
 }`,
           question: "How does the contract know which tally to increment?",
           options: [
@@ -299,7 +309,7 @@ function increment(externalEuint32 inputValue, bytes calldata inputProof) extern
           content: "Excellent! You've mastered conditional logic with encrypted data. Individual votes stay secret while tallies are computed homomorphically."
         }
       ],
-      contractAddress: "0x502E464B600780288FD5F1220944cE7e2dA0df4C"
+      contractAddress: "0xF7077681eF71E8083a15CC942D058366B26BBD44"
     }
   ];
 
@@ -521,7 +531,7 @@ function increment(externalEuint32 inputValue, bytes calldata inputProof) extern
                   <div key={index} className="contract-link">
                     <span className="contract-name">{lesson.title}</span>
                     <a 
-                      href={`https://sepolia.etherscan.io/address/${lesson.contractAddress}`}
+                      href={`https://sepolia.etherscan.io/address/${lesson.contractAddress}#code`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="etherscan-link"
@@ -541,6 +551,43 @@ function increment(externalEuint32 inputValue, bytes calldata inputProof) extern
                 <li>Build your own confidential dApp</li>
                 <li>Join the Zama community for support</li>
               </ul>
+            </div>
+
+            <div className="links-section">
+              <div className="links-container">
+                <div className="zama-links">
+                  <h4>🔗 Zama Resources</h4>
+                  <div className="link-list">
+                    <a href="https://guild.xyz/zama/bounty-program" target="_blank" rel="noopener noreferrer">
+                      Developer Program on Guild
+                    </a>
+                    <a href="https://www.zama.ai/community" target="_blank" rel="noopener noreferrer">
+                      Zama Community
+                    </a>
+                    <a href="https://discord.com/invite/zama" target="_blank" rel="noopener noreferrer">
+                      Discord Server
+                    </a>
+                    <a href="https://twitter.com/zama_fhe" target="_blank" rel="noopener noreferrer">
+                      Twitter/X
+                    </a>
+                  </div>
+                </div>
+
+                <div className="author-links">
+                  <h4>👨‍💻 Tutorial Author</h4>
+                  <div className="link-list">
+                    <a href="https://x.com/jobjab_eth" target="_blank" rel="noopener noreferrer">
+                      Follow on X
+                    </a>
+                    <a href="https://private-vote-fhevm-app.vercel.app/" target="_blank" rel="noopener noreferrer">
+                      Production dApp Demo
+                    </a>
+                    <a href="https://github.com/jobjab-dev/hello-fhevm-tutorial" target="_blank" rel="noopener noreferrer">
+                      GitHub Repository
+                    </a>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         ) : isLessonComplete() ? (
@@ -567,7 +614,7 @@ function increment(externalEuint32 inputValue, bytes calldata inputProof) extern
               <div className="contract-link">
                 <span className="contract-name">{currentLessonData.title}</span>
                 <a 
-                  href={`https://sepolia.etherscan.io/address/${currentLessonData.contractAddress}`}
+                  href={`https://sepolia.etherscan.io/address/${currentLessonData.contractAddress}#code`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="etherscan-link"
@@ -606,9 +653,9 @@ function increment(externalEuint32 inputValue, bytes calldata inputProof) extern
                 {currentStepData.code && (
                   <div className="code-section">
                     <h3>Code Example</h3>
-                    <pre className="code-block">
-                      <code>{currentStepData.code}</code>
-                    </pre>
+                <pre className="code-block">
+                  <code dangerouslySetInnerHTML={{ __html: currentStepData.code }}></code>
+                </pre>
                   </div>
                 )}
               </div>

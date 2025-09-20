@@ -17,7 +17,10 @@ async function main() {
 
   // Verify on Etherscan if on Sepolia
   if (hre.network.name === 'sepolia') {
-    console.log("\nVerifying contract on Etherscan...");
+    console.log("\nWaiting for Etherscan to index the contract...");
+    await new Promise(resolve => setTimeout(resolve, 15000)); // Wait 15 seconds
+    
+    console.log("Verifying contract on Etherscan...");
     
     try {
       await hre.run("verify:verify", {
@@ -28,7 +31,8 @@ async function main() {
       console.log(`View on Etherscan: https://sepolia.etherscan.io/address/${contractAddress}`);
     } catch (error) {
       console.log("⚠️ Verification failed:", error.message);
-      console.log("Contract may already be verified or try again later");
+      console.log("Manual verification:");
+      console.log(`npx hardhat verify --network sepolia ${contractAddress}`);
     }
   }
 

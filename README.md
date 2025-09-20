@@ -89,9 +89,9 @@ npm run clean
 
 Live examples on Sepolia testnet:
 
-- **FHEAdd**: [0x477693d4D3d0B9F33Aba1733C08185eeC98adf45](https://sepolia.etherscan.io/address/0x477693d4D3d0B9F33Aba1733C08185eeC98adf45)
-- **FHECounter**: [0x64F21cfF69922335A5108fFB67b2B2A4185D3064](https://sepolia.etherscan.io/address/0x64F21cfF69922335A5108fFB67b2B2A4185D3064)  
-- **PrivateVoting**: [0xa87062B7084c1635E88F4267d09e25D48590B74F](https://sepolia.etherscan.io/address/0xa87062B7084c1635E88F4267d09e25D48590B74F)
+- **FHEAdd**: [0x6170A47265D93B816b63381585243dDD02D11D6c](https://sepolia.etherscan.io/address/0x6170A47265D93B816b63381585243dDD02D11D6c)
+- **FHECounter**: [0xD568dBb5eDe5a835F7621CFADF3a1d1993b3311e](https://sepolia.etherscan.io/address/0xD568dBb5eDe5a835F7621CFADF3a1d1993b3311e)  
+- **PrivateVoting**: [0xF7077681eF71E8083a15CC942D058366B26BBD44](https://sepolia.etherscan.io/address/0xF7077681eF71E8083a15CC942D058366B26BBD44)
 
 ## 🏆 Bounty Submission
 
@@ -100,9 +100,8 @@ Live examples on Sepolia testnet:
 ✅ **Educational**: Interactive lessons without crypto jargon  
 ✅ **Complete**: 3 examples + deployment + frontend  
 ✅ **Effective**: Learn in 30 minutes, deploy in 5 minutes  
-✅ **Creative**: Gamified learning inspired by CryptoZombies
 
-**[🎮 Try the Interactive Tutorial Now!](http://localhost:5173)**
+**[🎮 Try the Interactive Tutorial Now!](https://private-vote-fhevm-app.vercel.app/)**
 
 ---
 
