@@ -1,12 +1,59 @@
 import React, { useState } from 'react';
+import { ethers } from 'ethers';
 
-function DemoComponent({ demo, demoState, onRunDemo }) {
+async function sha256Hex(message) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(message);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  const bytes = Array.from(new Uint8Array(hash));
+  return '0x' + bytes.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function buildDemoQuestion(step) {
+  if (!step || !step.demoQuestion || !step.demo) return null;
+  const demo = step.demo;
+  if (demo.type === 'add') {
+    const sum = (demo.expectedA ?? 0) + (demo.expectedB ?? 0);
+    return {
+      options: [
+        String(sum),
+        String(sum + 1),
+        String(sum - 1),
+        String(demo.expectedA ?? 0)
+      ],
+      correctIndex: 0
+    };
+  }
+  if (demo.type === 'counter') {
+    const v = demo.expectedValue ?? 1;
+    return {
+      options: [String(v), String(v + 1), String(Math.max(0, v - 1)), '0'],
+      correctIndex: 0
+    };
+  }
+  if (demo.type === 'vote') {
+    const correctIndex = (demo.expectedChoice ?? '0') === '0' ? 0 : 1;
+    return {
+      options: ['Yes', 'No', 'Unsure', 'Prefer not to say'],
+      correctIndex
+    };
+  }
+  return null;
+}
+import { lesson1 } from './lessons/lesson1.js';
+import { lesson2 } from './lessons/lesson2.js';
+import { lesson3 } from './lessons/lesson3.js';
+
+function DemoComponent({ demo, demoState, onRunDemo, fetchCiphertext }) {
   const [inputs, setInputs] = useState({
-    valueA: '10',
-    valueB: '20', 
+    valueA: '15',
+    valueB: '25', 
     incrementValue: '1',
     choice: '0'
   });
+  const [ctLoading, setCtLoading] = useState(false);
+  const [ciphertext, setCiphertext] = useState(null);
+  const [ctError, setCtError] = useState(null);
 
   const handleRun = () => {
     onRunDemo(demo.type, inputs);
@@ -15,7 +62,9 @@ function DemoComponent({ demo, demoState, onRunDemo }) {
     return (
     <div className="demo-section">
       <h3>Interactive Demo</h3>
-      <p className="demo-question">Should we implement privacy features in all blockchain applications?</p>
+      {demo.demoQuestion && (
+        <p className="demo-question">{demo.demoQuestion}</p>
+      )}
       
       {demo.type === 'add' && (
         <div className="demo-inputs">
@@ -89,9 +138,35 @@ function DemoComponent({ demo, demoState, onRunDemo }) {
         </div>
       )}
 
-      <button onClick={handleRun} className="demo-button">
-        {demo.action}
-      </button>
+      <div className="demo-buttons">
+        <button onClick={handleRun} className="demo-button">
+          {demo.action}
+        </button>
+        {fetchCiphertext && (
+          <button
+            onClick={async () => {
+              setCtError(null);
+              setCiphertext(null);
+              setCtLoading(true);
+              try {
+                const raw = await fetchCiphertext();
+                if (!raw || raw === '0x' || (typeof raw === 'string' && raw.toLowerCase() === '0x')) {
+                  setCtError('No stored ciphertext yet. This example saves a ciphertext only after an on-chain compute. Use Connect Wallet mode to run the contract, or switch to the Counter lesson to read an initialized ciphertext.');
+                } else {
+                  setCiphertext(raw);
+                }
+              } catch (e) {
+                setCtError(e.message || 'Failed to fetch ciphertext');
+              } finally {
+                setCtLoading(false);
+              }
+            }}
+            className="secondary-button"
+          >
+            View raw ciphertext
+          </button>
+        )}
+      </div>
 
       {demoState && demoState.steps && (
         <div className="demo-steps">
@@ -101,6 +176,25 @@ function DemoComponent({ demo, demoState, onRunDemo }) {
               {step}
             </div>
           ))}
+        </div>
+      )}
+
+      {fetchCiphertext && (
+        <div className="ciphertext-box">
+          <h4>Ciphertext</h4>
+          {ctLoading && <div className="ciphertext-loading">Loading...</div>}
+          {!ctLoading && ctError && <div className="ciphertext-error">{ctError}</div>}
+          {!ctLoading && ciphertext && (
+            <>
+              <pre className="code-block" style={{ maxHeight: '140px', overflow: 'auto' }}>
+                <code>{ciphertext}</code>
+              </pre>
+              {demo.demoNote && <div className="ciphertext-hint">{demo.demoNote}</div>}
+            </>
+          )}
+          {!ctLoading && !ctError && !ciphertext && (
+            <div className="ciphertext-hint">Run the demo and click "View raw ciphertext" to read on-chain ciphertext.</div>
+          )}
         </div>
       )}
     </div>
@@ -113,205 +207,39 @@ export default function App() {
   const [answers, setAnswers] = useState({});
   const [quizResults, setQuizResults] = useState({});
   const [demoState, setDemoState] = useState({});
+  const [lessonFinished, setLessonFinished] = useState(false);
+  const [showFinal, setShowFinal] = useState(false);
 
-  const lessons = [
-    {
-      title: "FHE Addition",
-      subtitle: "Your First Encrypted Calculation",
-      steps: [
-        {
-          type: "explanation",
-          title: "What is FHE?",
-          content: "Fully Homomorphic Encryption (FHE) lets you calculate on encrypted data without decrypting it first. Think of it like a magic box - you put encrypted numbers in, it does math, and gives you an encrypted result!",
-          question: "Why is this useful for blockchain?",
-          options: [
-            "To make transactions faster",
-            "To keep sensitive data private while still computing on it", 
-            "To reduce gas costs",
-            "To make smart contracts simpler"
-          ],
-          correct: 1
-        },
-        {
-          type: "code-explanation", 
-          title: "The FHE.add() Function",
-          content: "Here's how we add two encrypted numbers:",
-          code: `<span class="keyword">function</span> <span class="function">setA</span>(<span class="keyword">externalEuint8</span> inputA, <span class="keyword">bytes calldata</span> inputProof) <span class="keyword">external</span> {
-    _a = FHE.<span class="function">fromExternal</span>(inputA, inputProof);  <span class="comment">// Import encrypted value</span>
-    FHE.<span class="function">allowThis</span>(_a);  <span class="comment">// Grant contract permission</span>
-}
+  const resetLesson = (lessonIndex) => {
+    // Clear answers for this lesson only
+    setAnswers(prev => {
+      const next = { ...prev };
+      Object.keys(next).forEach(key => {
+        if (key.startsWith(`${lessonIndex}-`)) delete next[key];
+      });
+      return next;
+    });
+    // Clear quizResults for this lesson only
+    setQuizResults(prev => {
+      const next = { ...prev };
+      Object.keys(next).forEach(key => {
+        if (key.startsWith(`${lessonIndex}-`)) delete next[key];
+      });
+      return next;
+    });
+    // Clear demo state for this lesson only
+    setDemoState(prev => {
+      const next = { ...prev };
+      Object.keys(next).forEach(key => {
+        if (key.startsWith(`demo-${lessonIndex}-`)) delete next[key];
+      });
+      return next;
+    });
+    setCurrentStep(0);
+    setLessonFinished(false);
+  };
 
-<span class="keyword">function</span> <span class="function">computeSum</span>() <span class="keyword">external</span> {
-    _result = FHE.<span class="function">add</span>(_a, _b);  <span class="comment">// Magic happens here!</span>
-    FHE.<span class="function">allowThis</span>(_result);     <span class="comment">// Allow contract to use result</span>
-}`,
-          question: "What does FHE.add() do?",
-          options: [
-            "Decrypts both numbers, adds them, then encrypts result",
-            "Adds the encrypted numbers without ever decrypting them",
-            "Converts numbers to plaintext for addition",
-            "Sends numbers to a server for calculation"
-          ],
-          correct: 1
-        },
-        {
-          type: "demo",
-          title: "Try FHE Addition!",
-          content: "See homomorphic addition in action - no wallet needed!",
-          demo: {
-            type: "add",
-            inputs: ["valueA", "valueB"],
-            action: "Compute A + B"
-          }
-        },
-        {
-          type: "quiz",
-          title: "Test Your Understanding",
-          questions: [
-            {
-              q: "Can the smart contract see the actual values of _a and _b?",
-              options: ["Yes, it needs to decrypt them", "No, they stay encrypted", "Only during computation", "Only the owner can see"],
-              correct: 1
-            },
-            {
-              q: "What is FHE.allowThis() for?",
-              options: ["To decrypt the value", "To grant the contract permission to use the encrypted value", "To make the value public", "To delete the encrypted data"],
-              correct: 1  
-            }
-          ]
-        }
-      ],
-      contractAddress: "0x6170A47265D93B816b63381585243dDD02D11D6c"
-    },
-    {
-      title: "FHE Counter",
-      subtitle: "Encrypted State Management", 
-      steps: [
-        {
-          type: "explanation",
-          title: "What's Different About Encrypted State?",
-          content: "Regular smart contracts store data in plaintext - anyone can read the blockchain and see your balance, votes, etc. With FHE, the data stays encrypted even on the blockchain!",
-          question: "What can people see if you have 100 tokens in a regular ERC20?",
-          options: [
-            "Nothing, it's private",
-            "Your exact balance: 100 tokens",
-            "Only that you have some tokens",
-            "Only the contract owner can see"
-          ],
-          correct: 1
-        },
-        {
-          type: "code-explanation",
-          title: "Encrypted Counter vs Regular Counter",
-          content: "Compare these two approaches:",
-          code: `<span class="comment">// Regular Counter (everyone can see the value)</span>
-<span class="keyword">uint32</span> <span class="keyword">private</span> _count;
-<span class="keyword">function</span> <span class="function">increment</span>() <span class="keyword">external</span> {
-    _count += 1;  <span class="comment">// Value visible on blockchain</span>
-}
-
-<span class="comment">// FHE Counter (value stays secret)</span>
-<span class="keyword">euint32</span> <span class="keyword">private</span> _count;  
-<span class="keyword">function</span> <span class="function">increment</span>(
-    <span class="keyword">externalEuint32</span> inputValue, 
-    <span class="keyword">bytes calldata</span> inputProof
-) <span class="keyword">external</span> {
-    <span class="comment">// Import encrypted value with proof</span>
-    <span class="keyword">euint32</span> encValue = FHE.<span class="function">fromExternal</span>(
-        inputValue, 
-        inputProof
-    );
-    <span class="comment">// Homomorphic addition - no decryption!</span>
-    _count = FHE.<span class="function">add</span>(_count, encValue);
-    <span class="comment">// Grant contract permission</span>
-    FHE.<span class="function">allowThis</span>(_count);
-}`,
-          question: "What's the key difference?",
-          options: [
-            "FHE version is faster",
-            "FHE version keeps the count value secret",
-            "Regular version uses less gas",
-            "They work exactly the same"
-          ],
-          correct: 1
-        },
-        {
-          type: "demo",
-          title: "Counter Demo",
-          content: "Try the encrypted counter - watch the encrypted value change!",
-          demo: {
-            type: "counter",
-            inputs: ["incrementValue"],
-            action: "Increment Counter"
-          }
-        },
-        {
-          type: "explanation",
-          title: "Lesson Complete",
-          content: "Great! You've learned how encrypted state management works with FHE. The counter value stays private on the blockchain."
-        }
-      ],
-      contractAddress: "0xD568dBb5eDe5a835F7621CFADF3a1d1993b3311e"
-    },
-    {
-      title: "Private Voting",
-      subtitle: "Conditional Logic with Secrets",
-      steps: [
-        {
-          type: "explanation", 
-          title: "The Problem with Public Voting",
-          content: "On regular blockchains, everyone can see how you vote. This breaks democracy! People can be bribed, threatened, or influenced by seeing others' votes.",
-          question: "What's wrong with public voting?",
-          options: [
-            "It's too slow",
-            "It costs too much gas", 
-            "People can see your vote and pressure you",
-            "It's too complicated"
-          ],
-          correct: 2
-        },
-        {
-          type: "code-explanation",
-          title: "Encrypted Conditional Logic", 
-          content: "Here's how we count votes without seeing individual choices:",
-          code: `<span class="keyword">function</span> <span class="function">vote</span>(<span class="keyword">externalEuint32</span> encryptedChoice, <span class="keyword">bytes calldata</span> inputProof) <span class="keyword">external</span> {
-    <span class="keyword">euint32</span> choice = FHE.<span class="function">fromExternal</span>(encryptedChoice, inputProof);
-    
-    <span class="comment">// Check if vote is "Yes" (0) or "No" (1) - without decrypting!</span>
-    <span class="keyword">ebool</span> isYes = FHE.<span class="function">eq</span>(choice, FHE.<span class="function">asEuint32</span>(0));
-    
-    <span class="comment">// Add 1 to correct tally - conditionally</span>
-    <span class="keyword">euint64</span> incYes = FHE.<span class="function">select</span>(isYes, one, zero);
-    tallies[0] = FHE.<span class="function">add</span>(tallies[0], incYes);
-}`,
-          question: "How does the contract know which tally to increment?",
-          options: [
-            "It decrypts the vote first",
-            "It uses FHE.eq() and FHE.select() to choose without decrypting",
-            "It asks the user to specify",
-            "It increments both tallies"
-          ],
-          correct: 1
-        },
-        {
-          type: "demo",
-          title: "Voting Demo", 
-          content: "Cast your private vote and see how tallies work!",
-          demo: {
-            type: "vote",
-            inputs: ["choice"],
-            action: "Cast Vote"
-          }
-        },
-        {
-          type: "explanation",
-          title: "Lesson Complete",
-          content: "Excellent! You've mastered conditional logic with encrypted data. Individual votes stay secret while tallies are computed homomorphically."
-        }
-      ],
-      contractAddress: "0xF7077681eF71E8083a15CC942D058366B26BBD44"
-    }
-  ];
+  const lessons = [lesson1, lesson2, lesson3];
 
   const currentLessonData = lessons[currentLesson];
   const currentStepData = currentLessonData.steps[currentStep];
@@ -323,7 +251,7 @@ export default function App() {
 
   const checkQuiz = () => {
     const step = currentStepData;
-    if (step.type === 'quiz') {
+    if (step.questions && Array.isArray(step.questions)) {
       const results = step.questions.map((q, index) => {
         const key = `${currentLesson}-${currentStep}-${index}`;
         return answers[key] === q.correct;
@@ -333,27 +261,54 @@ export default function App() {
       const key = `${currentLesson}-${currentStep}-0`;
       const isCorrect = answers[key] === step.correct;
       setQuizResults(prev => ({ ...prev, [`${currentLesson}-${currentStep}`]: [isCorrect] }));
+    } else if (step.demoQuestion) {
+      const key = `${currentLesson}-${currentStep}-0`;
+      const built = buildDemoQuestion(step);
+      const isCorrect = answers[key] === (built?.correctIndex ?? 0);
+      setQuizResults(prev => ({ ...prev, [`${currentLesson}-${currentStep}`]: [isCorrect] }));
     }
   };
 
   const nextStep = () => {
-    // Auto-check answers when moving to next step
+    // Auto-check answers
     checkQuiz();
-    
-    if (currentStep < currentLessonData.steps.length - 1) {
+
+    const lastIndex = currentLessonData.steps.length - 1;
+    if (currentStep < lastIndex) {
       setCurrentStep(currentStep + 1);
-    } else if (currentLesson < lessons.length - 1) {
-      setCurrentLesson(currentLesson + 1);
-      setCurrentStep(0);
+    } else {
+      // On last step: first click completes the lesson, second click moves forward
+      if (!lessonFinished) {
+        setLessonFinished(true);
+      } else if (currentLesson < lessons.length - 1) {
+        const score = calculateLessonScore(currentLesson);
+        if (score.correct !== score.total) {
+          // Require perfect score to advance
+          return;
+        }
+        setCurrentLesson(currentLesson + 1);
+        setCurrentStep(0);
+        setLessonFinished(false);
+        setShowFinal(false);
+      } else {
+        // Last lesson: move to final tutorial screen
+        setShowFinal(true);
+      }
     }
   };
 
   const prevStep = () => {
+    if (lessonFinished && !showFinal) {
+      setLessonFinished(false);
+      return;
+    }
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     } else if (currentLesson > 0) {
       setCurrentLesson(currentLesson - 1);
       setCurrentStep(lessons[currentLesson - 1].steps.length - 1);
+      setLessonFinished(false);
+      setShowFinal(false);
     }
   };
 
@@ -361,16 +316,14 @@ export default function App() {
     return currentLesson === lessons.length - 1 && currentStep === currentLessonData.steps.length - 1;
   };
 
-  const isLessonComplete = () => {
-    return currentStep === currentLessonData.steps.length - 1;
-  };
+  const isLessonComplete = () => lessonFinished;
 
   const calculateLessonScore = (lessonIndex) => {
     let totalQuestions = 0;
     let correctAnswers = 0;
     
     lessons[lessonIndex].steps.forEach((step, stepIndex) => {
-      if (step.type === 'quiz') {
+      if (step.questions && Array.isArray(step.questions)) {
         step.questions.forEach((q, qIndex) => {
           totalQuestions++;
           const key = `${lessonIndex}-${stepIndex}-${qIndex}`;
@@ -380,6 +333,12 @@ export default function App() {
         totalQuestions++;
         const key = `${lessonIndex}-${stepIndex}-0`;
         if (answers[key] === step.correct) correctAnswers++;
+      } else if (step.demoQuestion) {
+        totalQuestions++;
+        const key = `${lessonIndex}-${stepIndex}-0`;
+        const built = buildDemoQuestion(step);
+        const correctIndex = built?.correctIndex ?? 0;
+        if (answers[key] === correctIndex) correctAnswers++;
       }
     });
     
@@ -392,7 +351,7 @@ export default function App() {
     
     lessons.forEach((lesson, lessonIndex) => {
       lesson.steps.forEach((step, stepIndex) => {
-        if (step.type === 'quiz') {
+        if (step.questions && Array.isArray(step.questions)) {
           step.questions.forEach((q, qIndex) => {
             totalQuestions++;
             const key = `${lessonIndex}-${stepIndex}-${qIndex}`;
@@ -402,6 +361,11 @@ export default function App() {
           totalQuestions++;
           const key = `${lessonIndex}-${stepIndex}-0`;
           if (answers[key] === step.correct) correctAnswers++;
+        } else if (step.demoQuestion) {
+          totalQuestions++;
+          const key = `${lessonIndex}-${stepIndex}-0`;
+          const correctIndex = 0;
+          if (answers[key] === correctIndex) correctAnswers++;
         }
       });
     });
@@ -500,7 +464,7 @@ export default function App() {
       </nav>
 
       <main className="learning-area">
-        {isLastStep() ? (
+        {showFinal ? (
           <div className="completion-screen">
             <div className="completion-header">
               <h2>🎉 Tutorial Complete!</h2>
@@ -609,6 +573,82 @@ export default function App() {
               })()}
             </div>
 
+            <div className="lesson-review">
+              <h3>Review Your Answers</h3>
+              <div style={{fontSize: '0.8rem', color: '#666', marginBottom: '16px'}}>
+                Debug: Found {Object.keys(answers).filter(key => key.startsWith(`${currentLesson}-`)).length} answers for this lesson
+              </div>
+              {currentLessonData.steps.map((step, stepIndex) => {
+                const results = [];
+                
+                if (step.questions && Array.isArray(step.questions)) {
+                  step.questions.forEach((q, qIndex) => {
+                    const key = `${currentLesson}-${stepIndex}-${qIndex}`;
+                    const userAnswer = answers[key];
+                    const isCorrect = userAnswer === q.correct;
+                    results.push(
+                      <div key={`${stepIndex}-${qIndex}`} className="answer-review">
+                        <div className="question-text">{q.q}</div>
+                        <div className={`answer-result ${isCorrect ? 'correct' : 'wrong'}`}>
+                          <div className="user-answer">
+                            Your answer: {q.options[userAnswer]} {isCorrect ? '✅' : '❌'}
+                          </div>
+                          {!isCorrect && (
+                            <div className="correct-answer">
+                              Correct answer: {q.options[q.correct]}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  });
+                } else if (step.question) {
+                  const key = `${currentLesson}-${stepIndex}-0`;
+                  const userAnswer = answers[key];
+                  const isCorrect = userAnswer === step.correct;
+                  results.push(
+                    <div key={stepIndex} className="answer-review">
+                      <div className="question-text">{step.question}</div>
+                      <div className={`answer-result ${isCorrect ? 'correct' : 'wrong'}`}>
+                        <div className="user-answer">
+                          Your answer: {step.options[userAnswer]} {isCorrect ? '✅' : '❌'}
+                        </div>
+                        {!isCorrect && (
+                          <div className="correct-answer">
+                            Correct answer: {step.options[step.correct]}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                } else if (step.demoQuestion) {
+                  const key = `${currentLesson}-${stepIndex}-0`;
+                  const userAnswer = answers[key];
+                  const built = buildDemoQuestion(step);
+                  const options = built?.options || [];
+                  const correctIndex = built?.correctIndex ?? 0;
+                  const isCorrect = userAnswer === correctIndex;
+                  results.push(
+                    <div key={`${stepIndex}-demo`} className="answer-review">
+                      <div className="question-text">{step.demoQuestion}</div>
+                      <div className={`answer-result ${isCorrect ? 'correct' : 'wrong'}`}>
+                        <div className="user-answer">
+                          Your answer: {options[userAnswer]} {isCorrect ? '✅' : '❌'}
+                        </div>
+                        {!isCorrect && (
+                          <div className="correct-answer">
+                            Correct answer: {options[correctIndex]}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                }
+                
+                return results;
+              }).flat()}
+            </div>
+
             <div className="lesson-contract">
               <h3>Your Contract</h3>
               <div className="contract-link">
@@ -625,17 +665,29 @@ export default function App() {
             </div>
 
             <div className="lesson-actions">
-              <button onClick={prevStep} className="back-button">
-                ← Back to Lesson
+              <button onClick={() => { resetLesson(currentLesson); }} className="try-again-button">
+                🔄 Try Again
               </button>
               {currentLesson < lessons.length - 1 ? (
-                <button onClick={nextStep} className="next-lesson-button">
-                  Next Lesson →
-                </button>
+                (() => {
+                  const score = calculateLessonScore(currentLesson);
+                  const canAdvance = score.correct === score.total && score.total > 0;
+                  return canAdvance ? (
+                    <button onClick={nextStep} className="next-lesson-button">
+                      Next Lesson →
+                    </button>
+                  ) : null;
+                })()
               ) : (
-                <button onClick={nextStep} className="final-results-button">
-                  View Final Results
-                </button>
+                (() => {
+                  const score = calculateLessonScore(currentLesson);
+                  const canFinish = score.correct === score.total && score.total > 0;
+                  return canFinish ? (
+                    <button onClick={nextStep} className="final-results-button">
+                      View Final Results
+                    </button>
+                  ) : null;
+                })()
               )}
             </div>
           </div>
@@ -658,16 +710,96 @@ export default function App() {
                 </pre>
                   </div>
                 )}
+
+                {currentStepData.notes && (
+                  <div className="notes-section" dangerouslySetInnerHTML={{ __html: currentStepData.notes }}>
+                  </div>
+                )}
+
+                {currentStepData.diagram && (
+                  <div className="diagram-section" dangerouslySetInnerHTML={{ __html: currentStepData.diagram }}>
+                  </div>
+                )}
               </div>
 
               <div className="interaction-section">
                 {currentStepData.type === 'demo' ? (
-                  <DemoComponent 
-                    demo={currentStepData.demo}
-                    demoState={demoState[`demo-${currentLesson}-${currentStep}`]}
-                    onRunDemo={runDemo}
-                  />
-                ) : currentStepData.type === 'quiz' ? (
+                  <>
+                    <DemoComponent 
+                      demo={currentStepData.demo}
+                      demoState={demoState[`demo-${currentLesson}-${currentStep}`]}
+                      onRunDemo={runDemo}
+                      fetchCiphertext={async () => {
+                        // Simulated ciphertext: no RPC, educational purpose only
+                        const ds = demoState[`demo-${currentLesson}-${currentStep}`];
+                        if (currentStepData.demo?.type === 'add') {
+                          const a = ds?.inputs?.a ?? 0;
+                          const b = ds?.inputs?.b ?? 0;
+                          return await sha256Hex(`FHE.add|${a}|${b}`);
+                        }
+                        if (currentStepData.demo?.type === 'counter') {
+                          const c = ds?.currentCount ?? 0;
+                          return await sha256Hex(`Counter|${c}`);
+                        }
+                        if (currentStepData.demo?.type === 'vote') {
+                          const last = ds?.lastVote ?? 'Yes';
+                          const tally = ds?.tallies ? `${ds.tallies.yes}|${ds.tallies.no}` : '0|0';
+                          return await sha256Hex(`Vote|${last}|${tally}`);
+                        }
+                        return await sha256Hex('UnknownDemo');
+                      }} 
+                    />
+                    {currentStepData.demoQuestion && (
+                      <div className="question-section">
+                        <h3>Quick Question</h3>
+                        <h4>{currentStepData.demoQuestion}</h4>
+                        {(() => {
+                          const built = buildDemoQuestion(currentStepData);
+                          const qIndex = 0;
+                          const key = `${currentLesson}-${currentStep}-${qIndex}`;
+                          return (
+                            <div className="options">
+                              {(built?.options || []).map((option, index) => (
+                                <label key={index} className="option">
+                                  <input
+                                    type="radio"
+                                    name={`demoq-${currentLesson}-${currentStep}`}
+                                    value={index}
+                                    checked={answers[key] === index}
+                                    onChange={() => handleAnswer(qIndex, index)}
+                                  />
+                                  <span>{option}</span>
+                                </label>
+                              ))}
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    )}
+                    {currentStepData.questions && (
+                      <div className="quiz-section">
+                        <h3>Quiz Time!</h3>
+                        {currentStepData.questions.map((q, qIndex) => (
+                          <div key={qIndex} className="question">
+                            <h4>{q.q}</h4>
+                            {q.options.map((option, oIndex) => (
+                              <label key={oIndex} className="option">
+                                <input
+                                  type="radio"
+                                  name={`q${qIndex}-${currentLesson}-${currentStep}`}
+                                  value={oIndex}
+                                  checked={answers[`${currentLesson}-${currentStep}-${qIndex}`] === oIndex}
+                                  onChange={() => handleAnswer(qIndex, oIndex)}
+                                />
+                                <span>{option}</span>
+                              </label>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                ) : (currentStepData.type === 'quiz' || (currentStepData.questions && Array.isArray(currentStepData.questions))) ? (
                   <div className="quiz-section">
                     <h3>Quiz Time!</h3>
                     {currentStepData.questions.map((q, qIndex) => (

@@ -191,6 +191,20 @@ body {
   color: #68D391;
 }
 
+/* Mini diagram inline in lesson content */
+.mini-diagram {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 6px 10px;
+  margin: 8px 0 0 0;
+  font-size: 0.9rem;
+}
+.mini-diagram .diagram-arrow { opacity: 0.7; }
+
 .interaction-section h3 {
   font-size: 1.4rem;
   font-weight: 700;
@@ -432,6 +446,13 @@ body {
   gap: 20px;
 }
 
+.demo-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
 .demo-button {
   background: var(--zama-black);
   color: var(--zama-yellow);
@@ -448,6 +469,47 @@ body {
 .demo-button:hover {
   background: var(--zama-yellow);
   color: var(--zama-black);
+}
+
+.secondary-button {
+  background: var(--zama-black);
+  color: var(--zama-yellow);
+  border: 2px solid var(--zama-yellow);
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 8px;
+}
+
+.secondary-button:hover {
+  background: var(--zama-yellow);
+  color: var(--zama-black);
+}
+
+.ciphertext-box {
+  margin-top: 16px;
+  background: #0c0c0c;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 12px;
+}
+.ciphertext-loading { color: #aaa; }
+.ciphertext-error { color: #ff5c5c; }
+.ciphertext-hint { color: #888; font-size: 0.9rem; }
+
+.common-misconceptions {
+  background: #1a1a1a;
+  border-left: 3px solid var(--zama-yellow);
+  padding: 12px;
+  margin: 12px 0;
+  font-size: 0.9rem;
+}
+.common-misconceptions h4 {
+  color: var(--zama-yellow);
+  margin: 0 0 8px 0;
+  font-size: 1rem;
 }
 
 .demo-steps {
@@ -706,6 +768,70 @@ body {
   font-weight: 700;
   color: var(--zama-black);
   margin: 0 0 16px 0;
+}
+
+.lesson-review {
+  background: white;
+  border: 2px solid var(--zama-yellow);
+  border-radius: 12px;
+  padding: 24px;
+  margin: 24px 0;
+  text-align: left;
+}
+
+.lesson-review h3 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--zama-black);
+  margin: 0 0 20px 0;
+}
+
+.answer-review {
+  background: #F8F9FA;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 12px 0;
+}
+
+.question-text {
+  font-weight: 600;
+  color: var(--zama-black);
+  margin-bottom: 8px;
+  font-size: 1rem;
+}
+
+.answer-result.correct {
+  color: #15803D;
+}
+
+.answer-result.wrong {
+  color: #DC2626;
+}
+
+.user-answer {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.correct-answer {
+  font-weight: 500;
+  font-style: italic;
+  opacity: 0.8;
+}
+
+.try-again-button {
+  background: #EF4444;
+  color: white;
+  border: 2px solid #DC2626;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.try-again-button:hover {
+  background: #DC2626;
 }
 
 .lesson-actions {
