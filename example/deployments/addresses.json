@@ -1,0 +1,19 @@
+{
+  "sepolia": {
+    "FHEAdd": "0x2606Bad46E99691f4aF1e9682Aaa83668D2C7ffB",
+    "Counter": "0x02DeB7C4F1198251C0Cb5cFd06c0292ae231FFca",
+    "PrivateVote": "0x7AF2867f9362E12CA0FcA13985f279b61F4B23Df",
+    "SecretNumberGame": "0xE9cff9dbb688834e29933962f1eF920031728EFc",
+    "ConfidentialERC20": "0xA894748bB89BD392D9d58f2A9a7203E0488485D7",
+    "OptimizedFHE": "0x6a7E8A53bC8093264fb1b1325687C3090F937e9B"
+  },
+  "localhost": {
+    "FHEAdd": null,
+    "Counter": null,
+    "PrivateVote": null,
+    "SecretNumberGame": null,
+    "ConfidentialERC20": null,
+    "OptimizedFHE": null
+  },
+  "lastUpdated": "2025-09-26T20:17:49.255Z"
+}

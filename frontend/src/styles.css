@@ -400,6 +400,23 @@ body {
   width: 100px;
 }
 
+.input-group select {
+  padding: 12px;
+  border: 2px solid var(--zama-yellow);
+  border-radius: 6px;
+  font-size: 1rem;
+  background: white;
+  color: var(--zama-black);
+  cursor: pointer;
+  min-width: 200px;
+}
+
+.input-group select:focus {
+  outline: none;
+  border-color: var(--zama-yellow);
+  box-shadow: 0 0 0 3px rgba(255, 222, 89, 0.3);
+}
+
 .vote-choices {
   display: flex;
   gap: 16px;
@@ -444,6 +461,31 @@ body {
 .vote-tallies {
   display: flex;
   gap: 20px;
+}
+
+.guess-result, .transfer-result, .optimization-result {
+  background: white;
+  border: 2px solid var(--zama-yellow);
+  border-radius: 8px;
+  padding: 16px;
+  margin: 12px 0;
+  color: var(--zama-black);
+}
+
+.guess-result strong, .transfer-result strong, .optimization-result strong {
+  color: var(--zama-black);
+  font-weight: 700;
+}
+
+.optimization-result div {
+  margin: 8px 0;
+  padding: 4px 0;
+}
+
+.optimization-result div:first-child {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--zama-black);
 }
 
 .demo-buttons {
@@ -971,4 +1013,56 @@ body {
   .lesson-button {
     padding: 16px;
   }
+}
+
+/* Notes Section */
+.notes-section {
+  background: white;
+  border: 2px solid var(--zama-yellow);
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px 0;
+  color: var(--zama-black);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.notes-section h4 {
+  color: var(--zama-black);
+  font-weight: 700;
+  margin: 0 0 12px 0;
+  font-size: 1rem;
+}
+
+.notes-section ul {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.notes-section li {
+  margin: 4px 0;
+  color: var(--zama-black);
+}
+
+.notes-section .common-misconceptions {
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 6px;
+  padding: 12px;
+  margin: 12px 0;
+}
+
+.notes-section .common-misconceptions h4 {
+  color: #856404;
+  margin: 0 0 8px 0;
+  font-size: 0.9rem;
+}
+
+.notes-section code {
+  background: var(--zama-black);
+  color: var(--zama-yellow);
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 0.85rem;
 }

@@ -2,25 +2,26 @@ const hre = require("hardhat");
 const { updateContractAddress } = require("./update-addresses");
 
 async function main() {
-  console.log("🔢 Deploying FHEAdd contract...");
+  console.log("🎯 Deploying SecretNumberGame contract...");
 
   // Clean build
   await hre.run("clean");
   await hre.run("compile", {
-    sources: ["contracts/FHEAdd.sol"]
+    sources: ["contracts/SecretNumberGame.sol"]
   });
 
-  // Deploy FHEAdd
-  const FHEAdd = await hre.ethers.getContractFactory("FHEAdd");
-  const fheAdd = await FHEAdd.deploy();
-  await fheAdd.waitForDeployment();
-  
-  const contractAddress = await fheAdd.getAddress();
-  console.log(`✅ FHEAdd deployed to: ${contractAddress}`);
+  // Deploy SecretNumberGame (no constructor args)
+  const SecretNumberGame = await hre.ethers.getContractFactory("SecretNumberGame");
+  const secretGame = await SecretNumberGame.deploy();
+
+  await secretGame.waitForDeployment();
+  const contractAddress = await secretGame.getAddress();
+
+  console.log(`✅ SecretNumberGame deployed to: ${contractAddress}`);
 
   // Update address in config files
   try {
-    updateContractAddress('FHEAdd', contractAddress, hre.network.name);
+    updateContractAddress('SecretNumberGame', contractAddress, hre.network.name);
   } catch (error) {
     console.warn('⚠️ Failed to update address config:', error.message);
   }
@@ -28,7 +29,7 @@ async function main() {
   // Auto-verify on Etherscan
   if (hre.network.name !== "hardhat" && hre.network.name !== "localhost") {
     console.log("🔍 Waiting for block confirmations...");
-    await fheAdd.deploymentTransaction().wait(6);
+    await secretGame.deploymentTransaction().wait(6);
     
     try {
       console.log("📋 Verifying contract on Etherscan...");
@@ -50,7 +51,7 @@ if (require.main === module) {
     .then((address) => {
       console.log(`\n🎉 Deployment complete!`);
       console.log(`Contract address: ${address}`);
-      console.log(`Features: Basic FHE addition operations`);
+      console.log(`Secret number: 42 (for tutorial purposes)`);
       process.exit(0);
     })
     .catch((error) => {

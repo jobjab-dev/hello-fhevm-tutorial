@@ -2,25 +2,27 @@ const hre = require("hardhat");
 const { updateContractAddress } = require("./update-addresses");
 
 async function main() {
-  console.log("🔢 Deploying FHEAdd contract...");
+  console.log("🪙 Deploying ConfidentialERC20 contract...");
 
   // Clean build
   await hre.run("clean");
   await hre.run("compile", {
-    sources: ["contracts/FHEAdd.sol"]
+    sources: ["contracts/ConfidentialERC20.sol"]
   });
 
-  // Deploy FHEAdd
-  const FHEAdd = await hre.ethers.getContractFactory("FHEAdd");
-  const fheAdd = await FHEAdd.deploy();
-  await fheAdd.waitForDeployment();
-  
-  const contractAddress = await fheAdd.getAddress();
-  console.log(`✅ FHEAdd deployed to: ${contractAddress}`);
+  // Deploy ConfidentialERC20 (no constructor args)
+  const ConfidentialERC20 = await hre.ethers.getContractFactory("ConfidentialERC20");
+  const token = await ConfidentialERC20.deploy();
+
+  await token.waitForDeployment();
+  const contractAddress = await token.getAddress();
+
+  console.log(`✅ ConfidentialERC20 deployed to: ${contractAddress}`);
+  console.log(`📊 Use initializeSupply() to set encrypted initial supply`);
 
   // Update address in config files
   try {
-    updateContractAddress('FHEAdd', contractAddress, hre.network.name);
+    updateContractAddress('ConfidentialERC20', contractAddress, hre.network.name);
   } catch (error) {
     console.warn('⚠️ Failed to update address config:', error.message);
   }
@@ -28,7 +30,7 @@ async function main() {
   // Auto-verify on Etherscan
   if (hre.network.name !== "hardhat" && hre.network.name !== "localhost") {
     console.log("🔍 Waiting for block confirmations...");
-    await fheAdd.deploymentTransaction().wait(6);
+    await token.deploymentTransaction().wait(6);
     
     try {
       console.log("📋 Verifying contract on Etherscan...");
@@ -50,7 +52,7 @@ if (require.main === module) {
     .then((address) => {
       console.log(`\n🎉 Deployment complete!`);
       console.log(`Contract address: ${address}`);
-      console.log(`Features: Basic FHE addition operations`);
+      console.log(`Token name: Confidential Token (CTKN)`);
       process.exit(0);
     })
     .catch((error) => {

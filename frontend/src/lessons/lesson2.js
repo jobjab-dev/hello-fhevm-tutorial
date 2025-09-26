@@ -1,6 +1,8 @@
+import { getContractAddress, getContractInfo } from '../config/contracts.js';
+
 export const lesson2 = {
   title: "FHE Counter",
-  subtitle: "Encrypted State Management", 
+  subtitle: "Encrypted State Management",
   steps: [
     {
       type: "explanation",
@@ -125,5 +127,10 @@ FHE counters are typically more expensive and slower than regular ones.
       ]
     },
   ],
-  contractAddress: "0xD568dBb5eDe5a835F7621CFADF3a1d1993b3311e"
+  get contractAddress() {
+    return getContractAddress('Counter');
+  },
+  get contractInfo() {
+    return getContractInfo('Counter');
+  }
 };

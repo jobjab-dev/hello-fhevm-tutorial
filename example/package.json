@@ -7,6 +7,13 @@
     "deploy:add": "hardhat run scripts/deploy-fheadd.js --network sepolia",
     "deploy:counter": "hardhat run scripts/deploy-counter.js --network sepolia", 
     "deploy:voting": "hardhat run scripts/deploy-voting.js --network sepolia",
+    "deploy:secretgame": "hardhat run scripts/deploy-secretgame.js --network sepolia",
+    "deploy:token": "hardhat run scripts/deploy-token.js --network sepolia",
+    "deploy:optimized": "hardhat run scripts/deploy-optimized.js --network sepolia",
+    "deploy:all": "hardhat run scripts/deploy-all.js --network sepolia",
+    "verify:all": "hardhat run scripts/verify-all.js --network sepolia",
+    "addresses": "node scripts/update-addresses.js",
+    "addresses:update": "node scripts/update-addresses.js update",
     "clean": "hardhat clean"
   },
   "dependencies": {

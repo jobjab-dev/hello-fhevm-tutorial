@@ -1,3 +1,5 @@
+import { getContractAddress, getContractInfo } from '../config/contracts.js';
+
 export const lesson1 = {
   title: "FHE Addition",
   subtitle: "Your First Encrypted Calculation",
@@ -104,5 +106,10 @@ export const lesson1 = {
       ]
     }
   ],
-  contractAddress: "0x6170A47265D93B816b63381585243dDD02D11D6c"
+  get contractAddress() {
+    return getContractAddress('FHEAdd');
+  },
+  get contractInfo() {
+    return getContractInfo('FHEAdd');
+  }
 };

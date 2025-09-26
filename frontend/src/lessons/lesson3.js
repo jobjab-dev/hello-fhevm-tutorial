@@ -1,3 +1,5 @@
+import { getContractAddress, getContractInfo } from '../config/contracts.js';
+
 export const lesson3 = {
   title: "Private Voting",
   subtitle: "Conditional Logic with Secrets",
@@ -126,5 +128,10 @@ export const lesson3 = {
       ]
     },
   ],
-  contractAddress: "0xF7077681eF71E8083a15CC942D058366B26BBD44"
+  get contractAddress() {
+    return getContractAddress('PrivateVote');
+  },
+  get contractInfo() {
+    return getContractInfo('PrivateVote');
+  }
 };

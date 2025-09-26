@@ -38,18 +38,44 @@ function buildDemoQuestion(step) {
       correctIndex
     };
   }
+  if (demo.type === 'guess') {
+    const secret = demo.secretNumber ?? 42;
+    return {
+      options: [String(secret), String(secret + 10), String(secret - 10), String(secret + 5)],
+      correctIndex: 0
+    };
+  }
+  if (demo.type === 'transfer') {
+    const amount = demo.expectedAmount ?? 100;
+    return {
+      options: [String(amount), String(amount * 2), String(amount / 2), String(amount + 50)],
+      correctIndex: 0
+    };
+  }
+  if (demo.type === 'optimize') {
+    return {
+      options: ['Batched operations', 'Individual operations', 'Both are the same', 'Neither approach works'],
+      correctIndex: 0
+    };
+  }
   return null;
 }
 import { lesson1 } from './lessons/lesson1.js';
 import { lesson2 } from './lessons/lesson2.js';
 import { lesson3 } from './lessons/lesson3.js';
+import { lesson4 } from './lessons/lesson4.js';
+import { lesson5 } from './lessons/lesson5.js';
+import { lesson6 } from './lessons/lesson6.js';
 
 function DemoComponent({ demo, demoState, onRunDemo, fetchCiphertext }) {
   const [inputs, setInputs] = useState({
     valueA: '15',
     valueB: '25', 
     incrementValue: '1',
-    choice: '0'
+    choice: '0',
+    guessValue: '42',
+    transferAmount: '100',
+    approach: 'batched'
   });
   const [ctLoading, setCtLoading] = useState(false);
   const [ciphertext, setCiphertext] = useState(null);
@@ -133,6 +159,70 @@ function DemoComponent({ demo, demoState, onRunDemo, fetchCiphertext }) {
             <div className="vote-tallies">
               <div>Yes: {demoState.tallies.yes} votes</div>
               <div>No: {demoState.tallies.no} votes</div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {demo.type === 'guess' && (
+        <div className="demo-inputs">
+          <div className="input-group">
+            <label>Your Guess (1-100):</label>
+            <input
+              type="number"
+              min="1"
+              max="100"
+              value={inputs.guessValue}
+              onChange={(e) => setInputs(prev => ({ ...prev, guessValue: e.target.value }))}
+              placeholder="Enter your guess"
+            />
+          </div>
+          {demoState && (
+            <div className="guess-result">
+              <strong>Result:</strong> {demoState.result}
+            </div>
+          )}
+        </div>
+      )}
+
+      {demo.type === 'transfer' && (
+        <div className="demo-inputs">
+          <div className="input-group">
+            <label>Transfer Amount:</label>
+            <input
+              type="number"
+              min="1"
+              value={inputs.transferAmount}
+              onChange={(e) => setInputs(prev => ({ ...prev, transferAmount: e.target.value }))}
+              placeholder="Amount to transfer"
+            />
+          </div>
+          {demoState && (
+            <div className="transfer-result">
+              <div>Transfer Status: {demoState.status}</div>
+              <div>Gas Used: {demoState.gasUsed}</div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {demo.type === 'optimize' && (
+        <div className="demo-inputs">
+          <div className="input-group">
+            <label>Choose Approach:</label>
+            <select
+              value={inputs.approach}
+              onChange={(e) => setInputs(prev => ({ ...prev, approach: e.target.value }))}
+            >
+              <option value="batched">Batched Operations</option>
+              <option value="individual">Individual Operations</option>
+            </select>
+          </div>
+          {demoState && (
+            <div className="optimization-result">
+              <div><strong>Approach:</strong> {demoState.approach}</div>
+              <div><strong>Gas Used:</strong> {demoState.gasUsed}</div>
+              <div><strong>Savings:</strong> {demoState.savings}</div>
             </div>
           )}
         </div>
@@ -239,7 +329,7 @@ export default function App() {
     setLessonFinished(false);
   };
 
-  const lessons = [lesson1, lesson2, lesson3];
+  const lessons = [lesson1, lesson2, lesson3, lesson4, lesson5, lesson6];
 
   const currentLessonData = lessons[currentLesson];
   const currentStepData = currentLessonData.steps[currentStep];
@@ -262,7 +352,7 @@ export default function App() {
       const isCorrect = answers[key] === step.correct;
       setQuizResults(prev => ({ ...prev, [`${currentLesson}-${currentStep}`]: [isCorrect] }));
     } else if (step.demoQuestion) {
-      const key = `${currentLesson}-${currentStep}-0`;
+      const key = `${currentLesson}-${currentStep}-demo-0`;
       const built = buildDemoQuestion(step);
       const isCorrect = answers[key] === (built?.correctIndex ?? 0);
       setQuizResults(prev => ({ ...prev, [`${currentLesson}-${currentStep}`]: [isCorrect] }));
@@ -434,6 +524,79 @@ export default function App() {
             `⚡ FHE.eq(enc(${choice}), enc(0)) → ${choice === '0' ? 'true' : 'false'}`,
             `⚡ FHE.select(${choice === '0' ? 'true' : 'false'}, 1, 0) → ${choice === '0' ? '1' : '0'}`,
             `📊 Tally updated: Yes=${newTallies.yes}, No=${newTallies.no}`
+          ]
+        }
+      }));
+    } else if (demoType === 'guess') {
+      const guess = parseInt(inputs.guessValue) || 42;
+      const secret = 42; // Fixed secret number for demo
+      let result;
+      if (guess === secret) {
+        result = "🎉 Correct! You won!";
+      } else if (guess < secret) {
+        result = "📈 Too low, try higher";
+      } else {
+        result = "📉 Too high, try lower";
+      }
+      
+      setDemoState(prev => ({
+        ...prev,
+        [key]: {
+          guess,
+          secret,
+          result,
+          steps: [
+            `🔐 Encrypt guess: ${guess} → enc(${guess})`,
+            `⚖️ FHE.eq(enc(${guess}), enc(${secret})) → ${guess === secret}`,
+            `⚖️ FHE.lt(enc(${guess}), enc(${secret})) → ${guess < secret}`,
+            `🎯 Game response: "${result}"`
+          ]
+        }
+      }));
+    } else if (demoType === 'transfer') {
+      const amount = parseInt(inputs.transferAmount) || 100;
+      const gasUsed = Math.floor(Math.random() * 50000) + 150000; // Simulated gas
+      
+      setDemoState(prev => ({
+        ...prev,
+        [key]: {
+          amount,
+          gasUsed: gasUsed.toLocaleString(),
+          status: "Transfer Successful",
+          steps: [
+            `🔐 Encrypt amount: ${amount} → enc(${amount})`,
+            `⚖️ FHE.lte(enc(${amount}), balance) → true`,
+            `⚡ FHE.sub(senderBalance, enc(${amount}))`,
+            `⚡ FHE.add(recipientBalance, enc(${amount}))`,
+            `✅ Transfer completed privately`
+          ]
+        }
+      }));
+    } else if (demoType === 'optimize') {
+      const approach = inputs.approach || 'batched';
+      const batchedGas = 200000;
+      const individualGas = 350000;
+      const gasUsed = approach === 'batched' ? batchedGas : individualGas;
+      const savings = approach === 'batched' ? 
+        `${((individualGas - batchedGas) / individualGas * 100).toFixed(1)}% savings` : 
+        'No savings';
+      
+      setDemoState(prev => ({
+        ...prev,
+        [key]: {
+          approach: approach === 'batched' ? 'Batched Operations' : 'Individual Operations',
+          gasUsed: gasUsed.toLocaleString(),
+          savings,
+          steps: approach === 'batched' ? [
+            `📦 Import both values in single call`,
+            `⚡ Batch FHE.add operations`,
+            `🔧 Single permission grant`,
+            `💰 Gas saved: ~43% reduction`
+          ] : [
+            `🔄 Import value 1, grant permission`,
+            `🔄 Import value 2, grant permission`,
+            `⚡ Individual FHE operations`,
+            `💸 Higher gas cost due to separate calls`
           ]
         }
       }));
@@ -622,7 +785,7 @@ export default function App() {
                     </div>
                   );
                 } else if (step.demoQuestion) {
-                  const key = `${currentLesson}-${stepIndex}-0`;
+                  const key = `${currentLesson}-${stepIndex}-demo-0`;
                   const userAnswer = answers[key];
                   const built = buildDemoQuestion(step);
                   const options = built?.options || [];
@@ -746,6 +909,20 @@ export default function App() {
                           const tally = ds?.tallies ? `${ds.tallies.yes}|${ds.tallies.no}` : '0|0';
                           return await sha256Hex(`Vote|${last}|${tally}`);
                         }
+                        if (currentStepData.demo?.type === 'guess') {
+                          const guess = ds?.guess ?? 42;
+                          const secret = ds?.secret ?? 42;
+                          return await sha256Hex(`Guess|${guess}|${secret}`);
+                        }
+                        if (currentStepData.demo?.type === 'transfer') {
+                          const amount = ds?.amount ?? 100;
+                          return await sha256Hex(`Transfer|${amount}`);
+                        }
+                        if (currentStepData.demo?.type === 'optimize') {
+                          const approach = ds?.approach ?? 'Batched Operations';
+                          const gas = ds?.gasUsed ?? '200,000';
+                          return await sha256Hex(`Optimize|${approach}|${gas}`);
+                        }
                         return await sha256Hex('UnknownDemo');
                       }} 
                     />
@@ -756,7 +933,7 @@ export default function App() {
                         {(() => {
                           const built = buildDemoQuestion(currentStepData);
                           const qIndex = 0;
-                          const key = `${currentLesson}-${currentStep}-${qIndex}`;
+                          const key = `${currentLesson}-${currentStep}-demo-${qIndex}`;
                           return (
                             <div className="options">
                               {(built?.options || []).map((option, index) => (
@@ -766,7 +943,7 @@ export default function App() {
                                     name={`demoq-${currentLesson}-${currentStep}`}
                                     value={index}
                                     checked={answers[key] === index}
-                                    onChange={() => handleAnswer(qIndex, index)}
+                                    onChange={() => handleAnswer(`demo-${qIndex}`, index)}
                                   />
                                   <span>{option}</span>
                                 </label>
