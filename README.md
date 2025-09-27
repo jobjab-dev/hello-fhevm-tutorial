@@ -24,7 +24,7 @@ This tutorial consists of **two main parts**:
 - **No blockchain connection needed** - learn through simulated demos
 - **Progressive lessons** with explanations, quizzes, and interactive examples
 - **Zama yellow/black theme** with responsive design
-- **Built with**: React, Vite, Zama relayer SDK (for demos only)
+- **Built with**: React, Vite, simulated demos (no SDK required)
 
 ### 🔧 **Smart Contracts** (`/example/`)
 - **6 production-ready contracts** demonstrating core FHE operations
