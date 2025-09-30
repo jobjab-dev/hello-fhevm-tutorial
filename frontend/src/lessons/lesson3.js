@@ -121,8 +121,8 @@ export const lesson3 = {
           correct: 1
         },
         {
-          q: "Which pair is used to choose a branch without decrypting?",
-          options: ["FHE.add & FHE.sub", "FHE.eq & FHE.select", "FHE.allow & FHE.allowThis", "FHE.asEuint32 & FHE.asEuint64"],
+          q: "What makes FHE voting more secure than regular voting?",
+          options: ["It's faster", "Individual votes stay encrypted while tallies are computed", "It costs less gas", "It doesn't need smart contracts"],
           correct: 1
         }
       ]

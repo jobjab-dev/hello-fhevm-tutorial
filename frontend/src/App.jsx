@@ -330,6 +330,21 @@ export default function App() {
   };
 
   const lessons = [lesson1, lesson2, lesson3, lesson4, lesson5, lesson6];
+  
+  // Debug: Count questions in each lesson
+  lessons.forEach((lesson, index) => {
+    let totalQuestions = 0;
+    lesson.steps.forEach((step, stepIndex) => {
+      if (step.questions && Array.isArray(step.questions)) {
+        totalQuestions += step.questions.length;
+      } else if (step.question) {
+        totalQuestions++;
+      } else if (step.demoQuestion) {
+        totalQuestions++;
+      }
+    });
+    console.log(`Lesson ${index + 1}: ${totalQuestions} questions`);
+  });
 
   const currentLessonData = lessons[currentLesson];
   const currentStepData = currentLessonData.steps[currentStep];
@@ -425,7 +440,7 @@ export default function App() {
         if (answers[key] === step.correct) correctAnswers++;
       } else if (step.demoQuestion) {
         totalQuestions++;
-        const key = `${lessonIndex}-${stepIndex}-0`;
+        const key = `${lessonIndex}-${stepIndex}-demo-0`;
         const built = buildDemoQuestion(step);
         const correctIndex = built?.correctIndex ?? 0;
         if (answers[key] === correctIndex) correctAnswers++;
@@ -453,8 +468,9 @@ export default function App() {
           if (answers[key] === step.correct) correctAnswers++;
         } else if (step.demoQuestion) {
           totalQuestions++;
-          const key = `${lessonIndex}-${stepIndex}-0`;
-          const correctIndex = 0;
+          const key = `${lessonIndex}-${stepIndex}-demo-0`;
+          const built = buildDemoQuestion(lessons[lessonIndex].steps[stepIndex]);
+          const correctIndex = built?.correctIndex ?? 0;
           if (answers[key] === correctIndex) correctAnswers++;
         }
       });

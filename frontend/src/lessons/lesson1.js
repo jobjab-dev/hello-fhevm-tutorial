@@ -99,8 +99,8 @@ export const lesson1 = {
           correct: 1
         },
         {
-          q: "What is FHE.allowThis() for?",
-          options: ["To decrypt the value", "To grant the contract permission to use the encrypted value", "To make the value public", "To delete the encrypted data"],
+          q: "Who can decrypt the result after computeSum()?",
+          options: ["Anyone on the blockchain", "Only the contract caller (via ACL)", "Only the contract owner", "No one, it stays encrypted forever"],
           correct: 1  
         }
       ]

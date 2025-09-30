@@ -120,8 +120,8 @@ FHE counters are typically more expensive and slower than regular ones.
           correct: 1
         },
         {
-          q: "Which function imports user ciphertext + proof?",
-          options: ["FHE.add", "FHE.fromExternal", "FHE.select", "FHE.allowThis"],
+          q: "What happens if you decrement more than the current count?",
+          options: ["Transaction fails", "Result wraps around modulo 2^32", "Counter becomes negative", "Contract asks for more balance"],
           correct: 1
         }
       ]
